@@ -7,7 +7,12 @@ import (
 	"sync"
 
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/attempter"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/empty"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/failover"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/init"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/leader"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/stopping"
 )
 
 type dgEntity[T any] struct {
@@ -29,14 +34,28 @@ func (e *dgEntity[T]) get(init func() (T, error)) (T, error) {
 type DepGraph struct {
 	logger      *dgEntity[*slog.Logger]
 	stateRunner *dgEntity[*run.LoopRunner]
-	emptyState  *dgEntity[*empty.State]
+
+	initState      *dgEntity[*init.State]
+	leaderState    *dgEntity[*leader.State]
+	attempterState *dgEntity[*attempter.State]
+	failoverState  *dgEntity[*failover.State]
+	stoppingState  *dgEntity[*stopping.State]
+
+	emptyState *dgEntity[*empty.State]
 }
 
 func New() *DepGraph {
 	return &DepGraph{
 		logger:      &dgEntity[*slog.Logger]{},
 		stateRunner: &dgEntity[*run.LoopRunner]{},
-		emptyState:  &dgEntity[*empty.State]{},
+
+		initState:      &dgEntity[*init.State]{},
+		leaderState:    &dgEntity[*leader.State]{},
+		attempterState: &dgEntity[*attempter.State]{},
+		failoverState:  &dgEntity[*failover.State]{},
+		stoppingState:  &dgEntity[*stopping.State]{},
+
+		emptyState: &dgEntity[*empty.State]{},
 	}
 }
 
@@ -46,6 +65,7 @@ func (dg *DepGraph) GetLogger() (*slog.Logger, error) {
 	})
 }
 
+// GetEmptyState - example стейт для примера, в итоговом сервисе использоваться не должен
 func (dg *DepGraph) GetEmptyState() (*empty.State, error) {
 	return dg.emptyState.get(func() (*empty.State, error) {
 		logger, err := dg.GetLogger()
@@ -53,6 +73,16 @@ func (dg *DepGraph) GetEmptyState() (*empty.State, error) {
 			return nil, fmt.Errorf("get logger: %w", err)
 		}
 		return empty.New(logger), nil
+	})
+}
+
+func (dg *DepGraph) GetLeaderState() (*leader.State, error) {
+	return dg.leaderState.get(func() (*leader.State, error) {
+		logger, err := dg.GetLogger()
+		if err != nil {
+			return nil, fmt.Errorf("get logger: %w", err)
+		}
+		return leader.New(logger), nil
 	})
 }
 
