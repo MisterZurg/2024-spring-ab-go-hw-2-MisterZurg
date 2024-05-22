@@ -1,46 +1,43 @@
-package attempter
+package states
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/init"
 	"github.com/go-zookeeper/zk"
 	"log/slog"
 	"time"
-
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
 )
 
-func New(runArgs cmdargs.RunArgs) *State {
+func NewAttempterState(runArgs cmdargs.RunArgs) *AttempterState {
 	logger := runArgs.Logger.With("subsystem", "Attempter")
-	return &State{
+	return &AttempterState{
 		logger:           logger,
 		attempterTimeout: *time.NewTicker(runArgs.AttempterTimeout),
 	}
 }
 
-type State struct {
+type AttempterState struct {
 	logger  *slog.Logger
 	runArgs cmdargs.RunArgs
 
 	connection *zk.Conn
 	// Для Gracefull Shutup
 	attempterTimeout time.Ticker
-	states           init.Stater
+	states           Stater
 }
 
-func (s *State) WithConnection(connection *zk.Conn) *State {
+func (s *AttempterState) WithConnection(connection *zk.Conn) *AttempterState {
 	s.connection = connection
 	return s
 }
 
-func (s *State) GracefullShutup() {
+func (s *AttempterState) GracefullShutup() {
 	s.attempterTimeout.Stop()
 }
 
-func (s *State) String() string {
+func (s *AttempterState) String() string {
 	return "AttempterState"
 }
 
@@ -48,7 +45,7 @@ func (s *State) String() string {
 // — Если отвалилась жепа и стал недоступен Zookeper, переходим в состояние Failover
 // — Если удаецца создать эфемерную ноду в Zookeper, переходим в Leader
 // — Если SIGTERM aka ctx.Done в состояние Stopping
-func (s *State) Run(ctx context.Context) (states.AutomataState, error) {
+func (s *AttempterState) Run(ctx context.Context) (AutomataState, error) {
 	if s.connection == nil {
 		return s.states.GetFailoverState(s.runArgs)
 	}

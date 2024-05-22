@@ -1,4 +1,4 @@
-package init
+package states
 
 import (
 	"context"
@@ -7,39 +7,34 @@ import (
 	"github.com/go-zookeeper/zk"
 
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/attempter"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/failover"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/leader"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/stopping"
 )
 
 type Stater interface {
-	GetAttempterState(cmdargs.RunArgs) (*attempter.State, error)
-	GetLeaderState(cmdargs.RunArgs) (*leader.State, error)
-	GetFailoverState(cmdargs.RunArgs) (*failover.State, error)
-	GetStoppingState(cmdargs.RunArgs) (*stopping.State, error)
+	GetAttempterState(cmdargs.RunArgs) (*AttempterState, error)
+	GetLeaderState(cmdargs.RunArgs) (*LeaderState, error)
+	GetFailoverState(cmdargs.RunArgs) (*FailoverState, error)
+	GetStoppingState(cmdargs.RunArgs) (*StoppingState, error)
 }
 
-func New(runArgs cmdargs.RunArgs) *State {
+func NewInitState(runArgs cmdargs.RunArgs) *InitState {
 	logger := runArgs.Logger.With("subsystem", "Init")
-	return &State{
+	return &InitState{
 		logger: logger,
 	}
 }
 
-type State struct {
+type InitState struct {
 	logger  *slog.Logger
 	runArgs cmdargs.RunArgs
 
 	states Stater
 }
 
-func (s *State) String() string {
+func (s *InitState) String() string {
 	return "InitState"
 }
 
-type Result struct {
+type ResultInitState struct {
 	conn *zk.Conn
 	err  error
 }
@@ -48,17 +43,17 @@ type Result struct {
 // — Если инициализация успешна, переходим в состояние Attempter
 // — Если отвалилась жепа и стал недоступен Zookeper, переходим в состояние Failover
 // — Если SIGTERM aka ctx.Done в состояние Stopping
-func (s *State) Run(ctx context.Context) (states.AutomataState, error) {
+func (s *InitState) Run(ctx context.Context) (AutomataState, error) {
 	s.logger.LogAttrs(ctx, slog.LevelInfo, "Inniting State")
 
-	result := make(chan Result)
+	result := make(chan ResultInitState)
 	go func() {
 		connection, _, err := zk.Connect(
 			s.runArgs.ZookeeperServers,
 			s.runArgs.SessionTimeout,
 		)
 
-		result <- Result{
+		result <- ResultInitState{
 			conn: connection,
 			err:  err,
 		}

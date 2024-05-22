@@ -3,17 +3,13 @@ package depgraph
 import (
 	"fmt"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
 	"log/slog"
 	"os"
 	"sync"
 
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/attempter"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/empty"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/failover"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/init"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/leader"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/stopping"
 )
 
 type dgEntity[T any] struct {
@@ -36,11 +32,11 @@ type DepGraph struct {
 	logger      *dgEntity[*slog.Logger]
 	stateRunner *dgEntity[*run.LoopRunner]
 
-	initState      *dgEntity[*init.State]
-	leaderState    *dgEntity[*leader.State]
-	attempterState *dgEntity[*attempter.State]
-	failoverState  *dgEntity[*failover.State]
-	stoppingState  *dgEntity[*stopping.State]
+	initState      *dgEntity[*states.InitState]
+	attempterState *dgEntity[*states.AttempterState]
+	leaderState    *dgEntity[*states.LeaderState]
+	failoverState  *dgEntity[*states.FailoverState]
+	stoppingState  *dgEntity[*states.StoppingState]
 
 	emptyState *dgEntity[*empty.State]
 }
@@ -50,11 +46,11 @@ func New() *DepGraph {
 		logger:      &dgEntity[*slog.Logger]{},
 		stateRunner: &dgEntity[*run.LoopRunner]{},
 
-		initState:      &dgEntity[*init.State]{},
-		leaderState:    &dgEntity[*leader.State]{},
-		attempterState: &dgEntity[*attempter.State]{},
-		failoverState:  &dgEntity[*failover.State]{},
-		stoppingState:  &dgEntity[*stopping.State]{},
+		initState:      &dgEntity[*states.InitState]{},
+		attempterState: &dgEntity[*states.AttempterState]{},
+		leaderState:    &dgEntity[*states.LeaderState]{},
+		failoverState:  &dgEntity[*states.FailoverState]{},
+		stoppingState:  &dgEntity[*states.StoppingState]{},
 
 		emptyState: &dgEntity[*empty.State]{},
 	}
@@ -77,33 +73,33 @@ func (dg *DepGraph) GetEmptyState() (*empty.State, error) {
 	})
 }
 
-func (dg *DepGraph) GetInitState(runArgs cmdargs.RunArgs) (*init.State, error) {
-	return dg.initState.get(func() (*init.State, error) {
-		return init.New(runArgs), nil
+func (dg *DepGraph) GetInitState(runArgs cmdargs.RunArgs) (*states.InitState, error) {
+	return dg.initState.get(func() (*states.InitState, error) {
+		return states.NewInitState(runArgs), nil
 	})
 }
 
-func (dg *DepGraph) GetAttempterState(runArgs cmdargs.RunArgs) (*attempter.State, error) {
-	return dg.attempterState.get(func() (*attempter.State, error) {
-		return attempter.New(runArgs), nil
+func (dg *DepGraph) GetAttempterState(runArgs cmdargs.RunArgs) (*states.AttempterState, error) {
+	return dg.attempterState.get(func() (*states.AttempterState, error) {
+		return states.NewAttempterState(runArgs), nil
 	})
 }
 
-func (dg *DepGraph) GetLeaderState(runArgs cmdargs.RunArgs) (*leader.State, error) {
-	return dg.leaderState.get(func() (*leader.State, error) {
-		return leader.New(runArgs), nil
+func (dg *DepGraph) GetLeaderState(runArgs cmdargs.RunArgs) (*states.LeaderState, error) {
+	return dg.leaderState.get(func() (*states.LeaderState, error) {
+		return states.NewLeaderState(runArgs), nil
 	})
 }
 
-func (dg *DepGraph) GetFailoverState(runArgs cmdargs.RunArgs) (*failover.State, error) {
-	return dg.failoverState.get(func() (*failover.State, error) {
-		return failover.New(runArgs), nil
+func (dg *DepGraph) GetFailoverState(runArgs cmdargs.RunArgs) (*states.FailoverState, error) {
+	return dg.failoverState.get(func() (*states.FailoverState, error) {
+		return states.NewFailoverState(runArgs), nil
 	})
 }
 
-func (dg *DepGraph) GetStoppingState(runArgs cmdargs.RunArgs) (*stopping.State, error) {
-	return dg.stoppingState.get(func() (*stopping.State, error) {
-		return stopping.New(runArgs), nil
+func (dg *DepGraph) GetStoppingState(runArgs cmdargs.RunArgs) (*states.StoppingState, error) {
+	return dg.stoppingState.get(func() (*states.StoppingState, error) {
+		return states.NewStoppingState(runArgs), nil
 	})
 }
 

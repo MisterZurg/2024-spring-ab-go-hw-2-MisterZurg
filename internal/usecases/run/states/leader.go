@@ -1,4 +1,4 @@
-package leader
+package states
 
 import (
 	"context"
@@ -11,8 +11,6 @@ import (
 	"github.com/go-zookeeper/zk"
 
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/init"
 )
 
 // countFiles — helper считающий кол-во файлов в dir
@@ -42,41 +40,41 @@ func cleanDir(dir string) error {
 	return nil
 }
 
-func New(runArgs cmdargs.RunArgs) *State {
+func NewLeaderState(runArgs cmdargs.RunArgs) *LeaderState {
 	logger := runArgs.Logger.With("subsystem", "Leader")
-	return &State{
+	return &LeaderState{
 		logger:        logger,
 		leaderTimeout: *time.NewTicker(runArgs.LeaderTimeout),
 	}
 }
 
-type State struct {
+type LeaderState struct {
 	logger  *slog.Logger
 	runArgs cmdargs.RunArgs
 
 	connection *zk.Conn
 	// Для Gracefull Shutup
 	leaderTimeout time.Ticker
-	states        init.Stater
+	states        Stater
 }
 
-func (s *State) WithConnection(connection *zk.Conn) *State {
+func (s *LeaderState) WithConnection(connection *zk.Conn) *LeaderState {
 	s.connection = connection
 	return s
 }
 
-func (s *State) GracefullShutup() {
+func (s *LeaderState) GracefullShutup() {
 	s.leaderTimeout.Stop()
 }
 
-func (s *State) String() string {
+func (s *LeaderState) String() string {
 	return "LeaderState"
 }
 
 // Run для LeaderState — cтали лидером, нужно писать файлик на диск(симуляция полезной деятельности)
 // — Если отвалилась жепа и стал недоступен Zookeper, переходим в состояние Failover
 // — Если SIGTERM aka ctx.Done в состояние Stopping
-func (s *State) Run(ctx context.Context) (states.AutomataState, error) {
+func (s *LeaderState) Run(ctx context.Context) (AutomataState, error) {
 	if s.connection == nil {
 		return s.states.GetFailoverState(s.runArgs)
 	}

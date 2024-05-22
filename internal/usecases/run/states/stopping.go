@@ -1,34 +1,31 @@
-package stopping
+package states
 
 import (
 	"context"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/init"
 	"log/slog"
-
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
 )
 
-func New(runArgs cmdargs.RunArgs) *State {
+func NewStoppingState(runArgs cmdargs.RunArgs) *StoppingState {
 	logger := runArgs.Logger.With("subsystem", "Stopping")
-	return &State{
+	return &StoppingState{
 		logger: logger,
 	}
 }
 
-type State struct {
+type StoppingState struct {
 	logger  *slog.Logger
 	runArgs cmdargs.RunArgs
 
-	states init.Stater
+	states Stater
 }
 
-func (s *State) String() string {
+func (s *StoppingState) String() string {
 	return "StoppingState"
 }
 
 // Run для StoppingState — Graceful shutdown
-func (s *State) Run(ctx context.Context) (states.AutomataState, error) {
+func (s *StoppingState) Run(ctx context.Context) (AutomataState, error) {
 	// Graceful shutdown - состояние, в котором приложение оСВОбождает все СВОи ресурсы
 	attempter, err := s.states.GetAttempterState(s.runArgs)
 	if err != nil {

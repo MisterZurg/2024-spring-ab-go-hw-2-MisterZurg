@@ -1,42 +1,40 @@
-package failover
+package states
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/init"
 	"github.com/go-zookeeper/zk"
 	"log/slog"
 	"time"
 )
 
-func New(runArgs cmdargs.RunArgs) *State {
+func NewFailoverState(runArgs cmdargs.RunArgs) *FailoverState {
 	logger := runArgs.Logger.With("subsystem", "Failover")
-	return &State{
+	return &FailoverState{
 		logger: logger,
 	}
 }
 
-type State struct {
+type FailoverState struct {
 	logger *slog.Logger
 
 	runArgs cmdargs.RunArgs
 
-	states init.Stater
+	states Stater
 }
 
-func (s *State) String() string {
+func (s *FailoverState) String() string {
 	return "FailoverState"
 }
 
-type Result struct {
+type ResultFailover struct {
 	connection *zk.Conn
 	err        error
 }
 
-func (s *State) unfuckFailoverState(ctx context.Context, result chan Result) {
+func (s *FailoverState) unfuckFailoverState(ctx context.Context, result chan ResultFailover) {
 	const maxAttempts = 3
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		connection, _, err := zk.Connect(
@@ -44,7 +42,7 @@ func (s *State) unfuckFailoverState(ctx context.Context, result chan Result) {
 			s.runArgs.SessionTimeout,
 		)
 		if err == nil {
-			result <- Result{
+			result <- ResultFailover{
 				connection: connection,
 			}
 			return
@@ -53,14 +51,14 @@ func (s *State) unfuckFailoverState(ctx context.Context, result chan Result) {
 
 		time.Sleep(s.runArgs.AttempterTimeout)
 	}
-	result <- Result{
+	result <- ResultFailover{
 		err: errors.New("unable to re-connect to Zookeeper"),
 	}
 }
 
 // Run для FailoverState — попытка приложения починить самого себя
-func (s *State) Run(ctx context.Context) (states.AutomataState, error) {
-	result := make(chan Result)
+func (s *FailoverState) Run(ctx context.Context) (AutomataState, error) {
+	result := make(chan ResultFailover)
 	go s.unfuckFailoverState(ctx, result)
 
 	select {
