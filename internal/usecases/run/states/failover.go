@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/go-zookeeper/zk"
 	"log/slog"
 	"time"
+
+	"github.com/go-zookeeper/zk"
+
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
 )
 
 func NewFailoverState(runArgs cmdargs.RunArgs) *FailoverState {

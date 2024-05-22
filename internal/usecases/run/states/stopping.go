@@ -2,8 +2,9 @@ package states
 
 import (
 	"context"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
 	"log/slog"
+
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
 )
 
 func NewStoppingState(runArgs cmdargs.RunArgs) *StoppingState {
@@ -42,5 +43,5 @@ func (s *StoppingState) Run(ctx context.Context) (AutomataState, error) {
 
 	s.logger.LogAttrs(ctx, slog.LevelWarn, "server is stopped Gracefully")
 
-	return nil, nil
+	return nil, nil //nolint:nilnil // stopped Gracefully nothing to return
 }

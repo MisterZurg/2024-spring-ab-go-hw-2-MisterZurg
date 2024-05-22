@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/go-zookeeper/zk"
 	"log/slog"
 	"time"
+
+	"github.com/go-zookeeper/zk"
+
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
 )
 
 func NewAttempterState(runArgs cmdargs.RunArgs) *AttempterState {
@@ -62,7 +64,7 @@ func (s *AttempterState) Run(ctx context.Context) (AutomataState, error) {
 			)
 			// This function is used to check if the error err is equal to
 			// the target error or if it satisfies the error interface
-			if !errors.As(err, zk.ErrNodeExists) {
+			if !errors.Is(err, zk.ErrNodeExists) {
 				result <- err
 				return
 			}

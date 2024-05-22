@@ -2,13 +2,13 @@ package depgraph
 
 import (
 	"fmt"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
 	"log/slog"
 	"os"
 	"sync"
 
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states"
 	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/usecases/run/states/empty"
 )
 

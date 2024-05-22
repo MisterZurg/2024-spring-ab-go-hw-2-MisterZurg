@@ -2,13 +2,14 @@ package commands
 
 import (
 	"fmt"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/config"
 	"log/slog"
 	"strings"
 
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
-	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/depgraph"
 	"github.com/spf13/cobra"
+
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/config"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/depgraph"
 )
 
 func InitRunCommand() (cobra.Command, error) {
@@ -18,7 +19,7 @@ func InitRunCommand() (cobra.Command, error) {
 		Short: "Starts a leader election node",
 		Long: `This command starts the leader election node that connects to zookeeper
 		and starts to try to acquire leadership by creation of ephemeral node`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			dg := depgraph.New()
 			// zkConn, err := dg.GetZkConn()
 			logger, err := dg.GetLogger()
