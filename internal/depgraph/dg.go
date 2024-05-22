@@ -2,6 +2,7 @@ package depgraph
 
 import (
 	"fmt"
+	"github.com/central-university-dev/2024-spring-go-course-lesson8-leader-election/internal/commands/cmdargs"
 	"log/slog"
 	"os"
 	"sync"
@@ -76,13 +77,33 @@ func (dg *DepGraph) GetEmptyState() (*empty.State, error) {
 	})
 }
 
-func (dg *DepGraph) GetLeaderState() (*leader.State, error) {
+func (dg *DepGraph) GetInitState(runArgs cmdargs.RunArgs) (*init.State, error) {
+	return dg.initState.get(func() (*init.State, error) {
+		return init.New(runArgs), nil
+	})
+}
+
+func (dg *DepGraph) GetAttempterState(runArgs cmdargs.RunArgs) (*attempter.State, error) {
+	return dg.attempterState.get(func() (*attempter.State, error) {
+		return attempter.New(runArgs), nil
+	})
+}
+
+func (dg *DepGraph) GetLeaderState(runArgs cmdargs.RunArgs) (*leader.State, error) {
 	return dg.leaderState.get(func() (*leader.State, error) {
-		logger, err := dg.GetLogger()
-		if err != nil {
-			return nil, fmt.Errorf("get logger: %w", err)
-		}
-		return leader.New(logger), nil
+		return leader.New(runArgs), nil
+	})
+}
+
+func (dg *DepGraph) GetFailoverState(runArgs cmdargs.RunArgs) (*failover.State, error) {
+	return dg.failoverState.get(func() (*failover.State, error) {
+		return failover.New(runArgs), nil
+	})
+}
+
+func (dg *DepGraph) GetStoppingState(runArgs cmdargs.RunArgs) (*stopping.State, error) {
+	return dg.stoppingState.get(func() (*stopping.State, error) {
+		return stopping.New(runArgs), nil
 	})
 }
 
