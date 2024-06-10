@@ -24,5 +24,5 @@ func (s *State) String() string {
 
 func (s *State) Run(ctx context.Context) (states.AutomataState, error) {
 	s.logger.LogAttrs(ctx, slog.LevelInfo, "Nothing happened")
-	return nil, nil
+	return nil, nil //nolint:nilnil // empty example
 }
